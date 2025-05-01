@@ -1,18 +1,12 @@
 import { drizzle } from "drizzle-orm/mysql2";
-import { createPool, type Pool } from "mysql2/promise";
-
-import { env } from "~/env";
+import mysql from "mysql2/promise";
 import * as schema from "./schema";
 
-/**
- * Cache the database connection in development. This avoids creating a new connection on every HMR
- * update.
- */
-const globalForDb = globalThis as unknown as {
-  conn: Pool | undefined;
-};
+const connection = await mysql.createConnection({
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USERNAME,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+});
 
-const conn = globalForDb.conn ?? createPool({ uri: env.DATABASE_URL });
-if (env.NODE_ENV !== "production") globalForDb.conn = conn;
-
-export const db = drizzle(conn, { schema, mode: "default" });
+export const db = drizzle(connection, { schema, mode: "default" });
